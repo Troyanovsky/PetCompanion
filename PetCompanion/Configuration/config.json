@@ -1,0 +1,54 @@
+{
+  "spriteSize": { "width": 64, "height": 64 },
+  "defaultState": "StandingIdle",
+  "states": {
+    "Default": {
+      "frames": ["Default.png"],
+      "fps": 1,
+      "loop": false,
+      "isMovement": false
+    },
+    "StandingIdle": {
+      "frames": ["StandingIdle1.png", "StandingIdle2.png", "StandingIdle3.png", "StandingIdle4.png"],
+      "sequence": "random",
+      "loop": true,
+      "fps": 2,
+      "minDuration": 3.0,
+      "maxDuration": 15.0,
+      "isMovement": false
+    },
+    "Walking": {
+      "frames": ["Walking1.png", "Walking2.png", "Walking3.png"],
+      "sequence": "sequential",
+      "loop": true,
+      "fps": 5,
+      "minDuration": 4.0,
+      "maxDuration": 20.0,
+      "speed": 40, // pixels per second
+      "isMovement": true
+    },
+    "Sitting": {
+      "frames": ["Sitting1.png", "Sitting2.png"],
+      "sequence": "sequential",
+      "loop": false,
+      "fps": 3,
+      "isMovement": false // Not movement itself, but leads to idle
+    },
+    "SittingIdle": {
+       "frames": ["SittingIdle1.png", "SittingIdle2.png", "SittingIdle3.png"],
+      "sequence": "random",
+      "loop": true,
+      "fps": 2,
+      "minDuration": 5.0,
+      "maxDuration": 15.0,
+      "isMovement": false
+    }
+  },
+  "transitions": {
+      "Walking": ["Default"],
+      "Sitting": ["SittingIdle"], // After playing Sitting anim, go to SittingIdle
+      "StandingIdle": ["Default"],
+      "SittingIdle": ["Default"],
+      "Default": ["Walking", "Sitting", "StandingIdle"]
+  }
+}
