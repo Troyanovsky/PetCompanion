@@ -15,10 +15,12 @@ class MenuBarController {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
 
         if let button = statusItem.button {
-            // Use the asset catalog image
-            button.image = NSImage(named: "MenuBarIcon")
-            // Ensure it renders correctly in dark/light mode if it's a template image
-            // button.image?.isTemplate = true
+            // Use SF Symbol for the menu bar icon
+            if let pawprintImage = NSImage(systemSymbolName: "pawprint.fill", accessibilityDescription: "Pet Companion") {
+                button.image = pawprintImage
+                // Make it template image to adapt to menu bar color scheme
+                button.image?.isTemplate = true
+            }
         }
 
         setupMenu()
