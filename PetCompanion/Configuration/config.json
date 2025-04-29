@@ -63,6 +63,13 @@
       "minDuration": 5.0,
       "maxDuration": 10.0,
       "isMovement": false
+    },
+    "Dragging": {
+      "frames": ["Dragging.png"],
+      "sequence": "sequential",
+      "loop": true,
+      "fps": 1,
+      "isMovement": false
     }  
   },
   "transitions": {
@@ -72,6 +79,7 @@
       "SittingIdle": ["Default"],
       "Default": ["Walking", "Sitting", "StandingIdle","Running","Sleeping"],
       "Running": ["Default"],
-      "Sleeping": ["Default"]
+      "Sleeping": ["Default"],
+      "Dragging": ["Default"]
   }
 }

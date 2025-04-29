@@ -62,11 +62,12 @@ class StateMachine {
         currentState = newState
         stateTimer?.invalidate() // Cancel previous timer if any
         currentStateDuration = 0 // Reset duration counter
-
+    
         // Special case for Dragging state - it should be the only state with infinite duration
         if newState == .Dragging {
             targetDuration = Double.infinity
             Logger.debug("StateMachine: Dragging state has infinite duration")
+            onStateChanged?(newState) // Notify listener (PetController)
             return
         }
 
