@@ -27,7 +27,7 @@ class MovementManager {
     func updateScreenRect() {
         // Use the main screen's visible frame (accounts for Dock and Menu Bar)
         screenRect = NSScreen.main?.visibleFrame ?? .zero
-        print("Screen Rect Updated: \(screenRect)")
+        Logger.debug("Screen Rect Updated: \(screenRect)")
     }
 
     // Called periodically by PetController's update loop
@@ -55,11 +55,11 @@ class MovementManager {
         if nextX >= rightBoundary {
             nextX = rightBoundary
             direction = .left // Flip direction
-             print("Hit Right Edge - Flipping Left")
+            Logger.debug("Hit Right Edge - Flipping Left")
         } else if nextX <= leftBoundary {
             nextX = leftBoundary
             direction = .right // Flip direction
-            print("Hit Left Edge - Flipping Right")
+            Logger.debug("Hit Left Edge - Flipping Right")
         }
 
         currentPosition = CGPoint(x: nextX, y: nextY)
@@ -93,10 +93,10 @@ class MovementManager {
     func dropToBottom() {
         updateScreenRect() // Ensure screen rect is current
         currentPosition.y = screenRect.minY
-         // Keep within horizontal bounds as well
+        // Keep within horizontal bounds as well
         currentPosition.x = max(screenRect.minX, min(currentPosition.x, screenRect.maxX - spriteSize.width))
 
-        print("Dropped to bottom: \(currentPosition)")
+        Logger.debug("Dropped to bottom: \(currentPosition)")
     }
 
     func setInitialPosition() {

@@ -42,10 +42,10 @@ class PetController: PetWindowDragDelegate {
 
     func start() {
         guard !isRunning else { return }
-        print("PetController: Starting...")
+        Logger.info("PetController: Starting...")
 
         guard let spriteSize = configManager.getSpriteSize() else {
-             print("PetController Error: Cannot start without sprite size from config.")
+             Logger.error("PetController Error: Cannot start without sprite size from config.")
              return
         }
 
@@ -86,7 +86,7 @@ class PetController: PetWindowDragDelegate {
             completion?()
             return 
         }
-        print("PetController: Stopping...")
+        Logger.info("PetController: Stopping...")
     
         // Set isRunning to false FIRST to prevent any further updates
         isRunning = false
@@ -157,7 +157,7 @@ class PetController: PetWindowDragDelegate {
     }
 
     private func handleStateChange(_ newState: PetState) {
-         print("PetController: State changed to \(newState)")
+         Logger.debug("PetController: State changed to \(newState)")
         // Inform Animation Manager about the new state immediately
         animationManager.setTargetState(newState)
 
@@ -168,7 +168,7 @@ class PetController: PetWindowDragDelegate {
     // MARK: - PetWindowDragDelegate Methods
 
     func petWindowDidStartDrag(_ window: PetWindow) {
-        print("PetController: Drag Started")
+        Logger.debug("PetController: Drag Started")
         movementManager.startDrag() // Notify movement manager
         stateMachine.handleDragStart() // Notify state machine
     }
@@ -185,7 +185,7 @@ class PetController: PetWindowDragDelegate {
     }
 
     func petWindowDidEndDrag(_ window: PetWindow) {
-        print("PetController: Drag Ended")
+        Logger.debug("PetController: Drag Ended")
         movementManager.endDrag()     // This includes the dropToBottom logic
         stateMachine.handleDragEnd()  // Let state machine decide next state
 

@@ -59,12 +59,12 @@ class PetWindow: NSWindow {
         if petView.hitTest(clickLocationInWindow) === petView { // Check if click hit the view itself
             // Convert click location to screen coordinates
             dragStartLocation = self.convertPoint(toScreen: clickLocationInWindow)
-             initialWindowOrigin = self.frame.origin
+            initialWindowOrigin = self.frame.origin
             dragDelegate?.petWindowDidStartDrag(self)
-             print("Mouse Down on PetView")
+            Logger.debug("Mouse Down on PetView")
         } else {
             // If clicked on transparent part, pass the event down (or ignore)
-             print("Mouse Down on Transparent Area")
+            Logger.debug("Mouse Down on Transparent Area")
             super.mouseDown(with: event)
         }
 
@@ -98,7 +98,7 @@ class PetWindow: NSWindow {
 
     override func mouseUp(with event: NSEvent) {
          if dragStartLocation != nil {
-             print("Mouse Up - Ending Drag")
+             Logger.debug("Mouse Up - Ending Drag")
              dragStartLocation = nil
              initialWindowOrigin = nil
              dragDelegate?.petWindowDidEndDrag(self)

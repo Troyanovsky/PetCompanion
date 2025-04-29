@@ -49,14 +49,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func togglePet(activate: Bool) {
         if activate {
             if petController == nil {
-                print("AppDelegate: Creating and starting PetController")
+                Logger.info("AppDelegate: Creating and starting PetController")
                 petController = PetController()
             }
             
-            print("AppDelegate: Starting PetController")
+            Logger.info("AppDelegate: Starting PetController")
             petController?.start()
         } else {
-            print("AppDelegate: Stopping PetController")
+            Logger.info("AppDelegate: Stopping PetController")
             // Ensure we update the menu state BEFORE stopping the controller
             menuBarController.updateToggleState(isActive: false)
             petController?.stop()
@@ -71,12 +71,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Try to open the user-editable config first
         if let userConfigUrl = ConfigurationManager.shared.getUserConfigUrl(),
            FileManager.default.fileExists(atPath: userConfigUrl.path) {
-            print("Opening user config: \(userConfigUrl.path)")
+            Logger.info("Opening user config: \(userConfigUrl.path)")
             NSWorkspace.shared.open(userConfigUrl)
         } else if let bundledConfigUrl = ConfigurationManager.shared.getBundledConfigUrl() {
             // If user config doesn't exist, maybe open the bundled one (read-only)
             // Or show an alert saying where the user one *would* be.
-            print("Opening bundled config (read-only): \(bundledConfigUrl.path)")
+            Logger.info("Opening bundled config (read-only): \(bundledConfigUrl.path)")
             // NSWorkspace.shared.open(bundledConfigUrl) // Might confuse users
             // Better: Show an alert explaining where to find/create the editable one
              let alert = NSAlert()
@@ -93,7 +93,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
              }
 
         } else {
-            print("Error: Cannot find any config file to open.")
+            Logger.error("Cannot find any config file to open.")
              let alert = NSAlert()
              alert.messageText = "Error"
              alert.informativeText = "Could not locate the configuration file."

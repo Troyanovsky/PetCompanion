@@ -24,21 +24,21 @@ class ConfigurationManager {
     // --- Loading Logic ---
     func loadConfig(from url: URL? = nil) {
         guard let urlToLoad = url ?? getBundledConfigUrl() else {
-            print("Error: config.json not found in bundle.")
+            Logger.error("config.json not found in bundle.")
             // Implement fallback or error handling
             return
         }
 
         self.configUrl = urlToLoad // Store the URL used
-        print("Loading configuration from \(urlToLoad.path)")
+        Logger.info("Loading configuration from \(urlToLoad.path)")
 
         do {
             let data = try Data(contentsOf: urlToLoad)
             let decoder = JSONDecoder()
             config = try decoder.decode(PetConfig.self, from: data)
-            print("Configuration loaded successfully from \(urlToLoad.path)")
+            Logger.info("Configuration loaded successfully from \(urlToLoad.path)")
         } catch {
-            print("Error loading or parsing config.json: \(error)")
+            Logger.error("Error loading or parsing config.json: \(error)")
             // Implement more robust error handling
             config = nil
         }
@@ -80,10 +80,10 @@ class ConfigurationManager {
                 // Copy bundled config here on first launch if needed
                 if let bundledUrl = getBundledConfigUrl(), !FileManager.default.fileExists(atPath: configUrl.path) {
                    try FileManager.default.copyItem(at: bundledUrl, to: configUrl)
-                    print("Copied initial config to Application Support.")
+                    Logger.info("Copied initial config to Application Support.")
                 }
             } catch {
-                print("Error creating Application Support directory: \(error)")
+                Logger.error("Error creating Application Support directory: \(error)")
                 return nil
             }
         }

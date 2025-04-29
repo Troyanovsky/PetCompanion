@@ -23,7 +23,7 @@ class AnimationManager {
 
     func loadAllSprites() {
         guard let config = configManager.getConfig() else {
-            print("AnimationManager: Config not loaded.")
+            Logger.error("AnimationManager: Config not loaded.")
             return
         }
 
@@ -31,7 +31,7 @@ class AnimationManager {
 
         for (stateName, stateConfig) in config.states {
             guard let state = PetState(rawValue: stateName) else {
-                print("Warning: Unknown state '\(stateName)' in config.json")
+                Logger.warning("Unknown state '\(stateName)' in config.json")
                 continue
             }
 
@@ -41,12 +41,12 @@ class AnimationManager {
                 if let image = NSImage(named: frameName) {
                     images.append(image)
                 } else {
-                    print("Warning: Could not load sprite '\(frameName)' for state \(stateName)")
+                    Logger.warning("Could not load sprite '\(frameName)' for state \(stateName)")
                 }
             }
             stateSpriteCache[state] = images
         }
-        print("Sprites loaded for states: \(stateSpriteCache.keys)")
+        Logger.info("Sprites loaded for states: \(stateSpriteCache.keys)")
         // Set initial state images
         let defaultState = PetState(rawValue: configManager.config?.defaultState ?? "") ?? .StandingIdle
         setTargetState(defaultState)
@@ -55,14 +55,14 @@ class AnimationManager {
     func setTargetState(_ state: PetState) {
         guard targetState != state || currentImages.isEmpty else { return } // Avoid redundant setup
 
-        print("AnimationManager: Setting state to \(state)")
+        Logger.debug("AnimationManager: Setting state to \(state)")
         targetState = state
         frameTimer?.invalidate() // Stop previous animation timer
         currentFrameIndex = 0
 
         guard let stateConfig = configManager.getStateConfig(for: state),
               let images = stateSpriteCache[state], !images.isEmpty else {
-            print("AnimationManager: No config or sprites found for state \(state)")
+            Logger.warning("AnimationManager: No config or sprites found for state \(state)")
             currentImages = stateSpriteCache[.Default] ?? [] // Fallback to Default
             if currentImages.isEmpty, let defaultImg = NSImage(named: "default.png") {
                  currentImages = [defaultImg] // Absolute fallback

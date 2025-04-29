@@ -25,14 +25,14 @@ class StateMachine {
     }
 
     func start() {
-        print("StateMachine: Starting with state \(currentState)")
+        Logger.info("StateMachine: Starting with state \(currentState)")
         
         // Reset to default state if currently Off
         if currentState == .Off {
             let defaultStateString = configManager.getConfig()?.defaultState ?? "StandingIdle"
             let defaultState = PetState(rawValue: defaultStateString) ?? .StandingIdle
             currentState = defaultState
-            print("StateMachine: Resetting from Off to default state: \(defaultState)")
+            Logger.info("StateMachine: Resetting from Off to default state: \(defaultState)")
         }
         
         setVisible(true)
@@ -40,7 +40,7 @@ class StateMachine {
     }
 
     func stop() {
-        print("StateMachine: Stopping")
+        Logger.info("StateMachine: Stopping")
         stateTimer?.invalidate()
         stateTimer = nil
         
@@ -58,7 +58,7 @@ class StateMachine {
     }
 
     private func enterState(_ newState: PetState) {
-        print("StateMachine: Entering state \(newState)")
+        Logger.debug("StateMachine: Entering state \(newState)")
         currentState = newState
         stateTimer?.invalidate() // Cancel previous timer if any
         currentStateDuration = 0 // Reset duration counter
@@ -66,12 +66,12 @@ class StateMachine {
         // Special case for Dragging state - it should be the only state with infinite duration
         if newState == .Dragging {
             targetDuration = Double.infinity
-            print("StateMachine: Dragging state has infinite duration")
+            Logger.debug("StateMachine: Dragging state has infinite duration")
             return
         }
 
         guard let stateConfig = configManager.getStateConfig(for: newState) else {
-            print("StateMachine: No config for state \(newState), using default duration 1-3s.")
+            Logger.debug("StateMachine: No config for state \(newState), using default duration 1-3s.")
             targetDuration = Double.random(in: 1.0...3.0) // Default random duration
             return
         }
@@ -90,7 +90,7 @@ class StateMachine {
             targetDuration = Double.random(in: 1.0...3.0)
         }
 
-         print("StateMachine: Target duration for \(newState): \(targetDuration == Double.infinity ? "Infinite" : "\(targetDuration)s")")
+         Logger.debug("StateMachine: Target duration for \(newState): \(targetDuration == Double.infinity ? "Infinite" : "\(targetDuration)s")")
 
         // Start a timer to check for state transition
         // Use a repeating timer that fires frequently to check duration
@@ -116,8 +116,8 @@ class StateMachine {
 
         // Check if it's time to transition
         if currentStateDuration >= targetDuration {
-             print("StateMachine: Duration \(targetDuration)s reached for \(currentState). Transitioning...")
-             decideNextState()
+            Logger.debug("StateMachine: Duration \(targetDuration)s reached for \(currentState). Transitioning...")
+            decideNextState()
         }
     }
 
@@ -164,7 +164,7 @@ class StateMachine {
         }
          else {
             // If no specific transitions, maybe just go back to the default idle state?
-            print("StateMachine: No specific transition for \(currentState), returning to default idle.")
+            Logger.debug("StateMachine: No specific transition for \(currentState), returning to default idle.")
             let defaultStateEnum = PetState(rawValue: config.defaultState) ?? .StandingIdle
             enterState(defaultStateEnum)
         }
