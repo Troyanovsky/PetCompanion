@@ -14,7 +14,7 @@
       "loop": true,
       "fps": 2,
       "minDuration": 3.0,
-      "maxDuration": 15.0,
+      "maxDuration": 8.0,
       "isMovement": false
     },
     "Walking": {
@@ -24,7 +24,7 @@
       "fps": 5,
       "minDuration": 4.0,
       "maxDuration": 20.0,
-      "speed": 40, // pixels per second
+      "speed": 40,
       "isMovement": true
     },
     "Sitting": {
@@ -32,23 +32,46 @@
       "sequence": "sequential",
       "loop": false,
       "fps": 3,
-      "isMovement": false // Not movement itself, but leads to idle
+      "minDuration": 1.0,
+      "maxDuration": 2.0,
+      "isMovement": false
     },
     "SittingIdle": {
        "frames": ["SittingIdle1.png", "SittingIdle2.png", "SittingIdle3.png"],
       "sequence": "random",
       "loop": true,
       "fps": 2,
-      "minDuration": 5.0,
-      "maxDuration": 15.0,
+      "minDuration": 3.0,
+      "maxDuration": 8.0,
       "isMovement": false
-    }
+    },
+    "Running": {
+      "frames": ["Running1.png", "Running2.png", "Running3.png", "Running4.png", "Running5.png"],
+      "sequence": "sequential",
+      "loop": true,
+      "fps": 10,
+      "minDuration": 4.0,
+      "maxDuration": 20.0,
+      "speed": 60,
+      "isMovement": true
+    },
+    "Sleeping": {
+      "frames": ["Sleeping1.png", "Sleeping2.png", "Sleeping3.png"],
+      "sequence": "sequential",
+      "loop": true,
+      "fps": 3,
+      "minDuration": 5.0,
+      "maxDuration": 10.0,
+      "isMovement": false
+    }  
   },
   "transitions": {
-      "Walking": ["Default"],
-      "Sitting": ["SittingIdle"], // After playing Sitting anim, go to SittingIdle
-      "StandingIdle": ["Default"],
+      "Walking": ["Default","Running"],
+      "Sitting": ["SittingIdle"],
+      "StandingIdle": ["Default", "Walking"],
       "SittingIdle": ["Default"],
-      "Default": ["Walking", "Sitting", "StandingIdle"]
+      "Default": ["Walking", "Sitting", "StandingIdle","Running","Sleeping"],
+      "Running": ["Default"],
+      "Sleeping": ["Default"]
   }
 }

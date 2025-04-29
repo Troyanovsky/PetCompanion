@@ -1,0 +1,100 @@
+//
+//  AppDelegate.swift
+//  PetCompanion
+//
+//  Created by Guodong Zhao on 4/28/25.
+//
+
+import Cocoa
+
+@main // Use @main attribute for the entry point
+class AppDelegate: NSObject, NSApplicationDelegate {
+
+    private var menuBarController: MenuBarController!
+    private var petController: PetController? // Hold the PetController instance
+
+    func applicationDidFinishLaunching(_ aNotification: Notification) {
+        // Initialize configuration first
+         // Attempt to load user config, fallback to bundled
+        ConfigurationManager.shared.loadUserConfig()
+
+        // Initialize Menu Bar
+        menuBarController = MenuBarController()
+        menuBarController.appDelegate = self // Link back for actions
+        menuBarController.setupStatusItem()
+
+        // Start the pet automatically on launch (or based on a saved preference)
+        togglePet(activate: true) // Start active
+        menuBarController.updateToggleState(isActive: isPetActive())
+    }
+
+    func applicationWillTerminate(_ aNotification: Notification) {
+        // Clean up resources if needed
+        petController?.stop()
+    }
+
+     // Allows app to run without a main window showing initially
+     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+         return false // Don't reopen or create a window on dock icon click
+     }
+
+
+    // MARK: - Actions from MenuBarController
+
+    func togglePet(activate: Bool) {
+        if activate {
+            if petController == nil {
+                print("AppDelegate: Creating and starting PetController")
+                petController = PetController()
+                petController?.start()
+            } else if !(petController?.isRunning ?? false) {
+                 print("AppDelegate: Starting existing PetController")
+                 petController?.start() // Start if already exists but stopped
+            }
+        } else {
+            print("AppDelegate: Stopping PetController")
+            petController?.stop()
+            // Optionally destroy it: petController = nil
+            // Keeping it might be slightly faster to restart
+        }
+         menuBarController.updateToggleState(isActive: isPetActive()) // Ensure menu updates
+    }
+
+    func isPetActive() -> Bool {
+        return petController?.isRunning ?? false
+    }
+
+     func openConfigFile() {
+        // Try to open the user-editable config first
+        if let userConfigUrl = ConfigurationManager.shared.getUserConfigUrl(),
+           FileManager.default.fileExists(atPath: userConfigUrl.path) {
+            print("Opening user config: \(userConfigUrl.path)")
+            NSWorkspace.shared.open(userConfigUrl)
+        } else if let bundledConfigUrl = ConfigurationManager.shared.getBundledConfigUrl() {
+            // If user config doesn't exist, maybe open the bundled one (read-only)
+            // Or show an alert saying where the user one *would* be.
+            print("Opening bundled config (read-only): \(bundledConfigUrl.path)")
+            // NSWorkspace.shared.open(bundledConfigUrl) // Might confuse users
+            // Better: Show an alert explaining where to find/create the editable one
+             let alert = NSAlert()
+             alert.messageText = "Editable Configuration"
+             alert.informativeText = "To edit the pet's behavior, create or modify 'config.json' inside:\n~/Library/Application Support/\(Bundle.main.bundleIdentifier ?? "DesktopPet")/"
+             alert.addButton(withTitle: "OK")
+             alert.addButton(withTitle: "Reveal Folder") // Button to open Application Support
+             let response = alert.runModal()
+
+             if response == .alertSecondButtonReturn {
+                 if let appSupportDir = ConfigurationManager.shared.getUserConfigUrl()?.deletingLastPathComponent() {
+                     NSWorkspace.shared.open(appSupportDir)
+                 }
+             }
+
+        } else {
+            print("Error: Cannot find any config file to open.")
+             let alert = NSAlert()
+             alert.messageText = "Error"
+             alert.informativeText = "Could not locate the configuration file."
+             alert.runModal()
+        }
+    }
+}
