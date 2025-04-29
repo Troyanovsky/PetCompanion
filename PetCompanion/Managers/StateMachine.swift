@@ -13,8 +13,12 @@ class StateMachine {
     private var stateTimer: Timer?
     private var currentStateDuration: TimeInterval = 0 // Time spent in current state
     private var targetDuration: TimeInterval = Double.infinity // How long to stay in the current state
+    
+    // Add property to track visibility
+    private(set) var isVisible: Bool = true
 
     var onStateChanged: ((PetState) -> Void)? // Callback for when state changes
+    var onVisibilityChanged: ((Bool) -> Void)? // New callback for visibility changes
 
     init(initialState: PetState) {
         self.currentState = initialState
@@ -22,6 +26,16 @@ class StateMachine {
 
     func start() {
         print("StateMachine: Starting with state \(currentState)")
+        
+        // Reset to default state if currently Off
+        if currentState == .Off {
+            let defaultStateString = configManager.getConfig()?.defaultState ?? "StandingIdle"
+            let defaultState = PetState(rawValue: defaultStateString) ?? .StandingIdle
+            currentState = defaultState
+            print("StateMachine: Resetting from Off to default state: \(defaultState)")
+        }
+        
+        setVisible(true)
         enterState(currentState)
     }
 
@@ -29,6 +43,18 @@ class StateMachine {
         print("StateMachine: Stopping")
         stateTimer?.invalidate()
         stateTimer = nil
+        
+        // Set to Off state and notify listeners
+        currentState = .Off
+        setVisible(false)
+        onStateChanged?(.Off)
+    }
+    
+    // New method to control visibility
+    func setVisible(_ visible: Bool) {
+        guard isVisible != visible else { return }
+        isVisible = visible
+        onVisibilityChanged?(visible)
     }
 
     private func enterState(_ newState: PetState) {

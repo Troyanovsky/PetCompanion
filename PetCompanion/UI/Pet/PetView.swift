@@ -10,17 +10,31 @@ import AppKit
 class PetView: NSView {
     var currentImage: NSImage?
     var direction: Direction = .right
-
+    var visibilityState: Bool = true  // Add a custom property for visibility state
+    
     // Ensure view isn't opaque
     override var isOpaque: Bool {
         return false
     }
-
+    
+    // Replace the custom isHidden property with a more specific name
+    var isPetHidden: Bool {
+        get {
+            return !visibilityState
+        }
+        set {
+            visibilityState = !newValue
+            self.isHidden = newValue // Use the standard NSView property
+            needsDisplay = true
+        }
+    }
+    
     override func draw(_ dirtyRect: NSRect) {
         super.draw(dirtyRect)
-
-        guard let image = currentImage else { return }
-
+        
+        // Don't draw if hidden
+        guard visibilityState, let image = currentImage else { return }
+        
         // Clear the background (important for transparency)
         NSColor.clear.set()
         dirtyRect.fill()

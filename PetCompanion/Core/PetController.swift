@@ -33,6 +33,11 @@ class PetController: PetWindowDragDelegate {
         self.stateMachine.onStateChanged = { [weak self] newState in
             self?.handleStateChange(newState)
         }
+        
+        // Add callback for visibility changes
+        self.stateMachine.onVisibilityChanged = { [weak self] isVisible in
+            self?.handleVisibilityChange(isVisible)
+        }
     }
 
     func start() {
@@ -46,14 +51,20 @@ class PetController: PetWindowDragDelegate {
 
         // Ensure managers are ready (sprites loaded, screen rect updated)
         animationManager.loadAllSprites() // Reload sprites in case config changed
+        animationManager.start() // Explicitly restart animation manager
         movementManager.updateScreenRect()
         movementManager.setInitialPosition() // Reset position
 
-        // Create the pet window
-        petWindow = PetWindow(spriteSize: spriteSize)
-        petWindow?.dragDelegate = self // Set self as delegate for drag events
-        petWindow?.setFrameOrigin(movementManager.currentPosition) // Set initial position
-        petWindow?.makeKeyAndOrderFront(nil) // Show the window
+        // Create the pet window if it doesn't exist
+        if petWindow == nil {
+            petWindow = PetWindow(spriteSize: spriteSize)
+            petWindow?.dragDelegate = self // Set self as delegate for drag events
+            petWindow?.setFrameOrigin(movementManager.currentPosition) // Set initial position
+            petWindow?.makeKeyAndOrderFront(nil) // Show the window
+        } else {
+            // If window exists, just make it visible
+            petWindow?.makeKeyAndOrderFront(nil)
+        }
 
         // Start the state machine
         stateMachine.start() // This will trigger the initial state setup
@@ -70,59 +81,78 @@ class PetController: PetWindowDragDelegate {
         isRunning = true
     }
 
-    func stop() {
-        guard isRunning else { return }
+    func stop(completion: (() -> Void)? = nil) {
+        guard isRunning else { 
+            completion?()
+            return 
+        }
         print("PetController: Stopping...")
-
+    
+        // Set isRunning to false FIRST to prevent any further updates
+        isRunning = false
+        
+        // Invalidate timer
         updateTimer?.invalidate()
         updateTimer = nil
-
+        
+        // Stop state machine and animation
         stateMachine.stop()
         animationManager.stop() // Stop animation timers
-
-        petWindow?.close() // Close the window
-        petWindow = nil
-
-        isRunning = false
+        
+        // Call completion when done
+        completion?()
+    }
+    
+    // New method to handle visibility changes
+    private func handleVisibilityChange(_ isVisible: Bool) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self, let petView = self.petWindow?.petView else { return }
+            petView.isPetHidden = !isVisible
+        }
     }
 
     @objc private func update() {
+        // First check if we should be running at all
         guard isRunning else { return }
-
+        
+        // Safely capture window reference
+        guard let window = petWindow else { return }
+        
         let currentTime = ProcessInfo.processInfo.systemUptime
         let deltaTime = currentTime - lastUpdateTime
         lastUpdateTime = currentTime
-
+        
         // Only update if not paused or in a non-updating state
         guard stateMachine.currentState != .Off else { return }
-
-
+    
         // 1. Update Movement (only if not dragging)
-        // State machine dictates if movement should occur based on current state
         if !movementManager.isDragging {
              movementManager.update(deltaTime: deltaTime, state: stateMachine.currentState)
         }
-        // If dragging, MovementManager position is updated via drag delegate methods
-
-        // 2. Update Animation (AnimationManager handles its own timing internally)
-        // We just need to ensure it has the correct target state (done via stateMachine callback)
-
-        // 3. Get Updated Data
+    
+        // 2. Get Updated Data
         let currentFrame = animationManager.getCurrentFrame()
         let currentPosition = movementManager.currentPosition
         let currentDirection = movementManager.direction
-
-        // 4. Update UI (Window and View) - MUST be on main thread
-        DispatchQueue.main.async { [weak self] in
-             guard let self = self, self.isRunning, let window = self.petWindow else { return }
-
-             // Update window position
-             window.setFrameOrigin(currentPosition)
-
-             // Update view content
-             window.petView.currentImage = currentFrame
-             window.petView.direction = currentDirection
-             window.petView.needsDisplay = true // Tell the view to redraw
+    
+        // 3. Update UI (Window and View) - MUST be on main thread
+        // Capture all needed data before dispatching to main thread
+        DispatchQueue.main.async { [weak self, weak window] in
+            // Double-check everything is still valid
+            guard let self = self, 
+                  self.isRunning, 
+                  let validWindow = window, 
+                  self.petWindow === validWindow else { return }
+            
+            // Update window position
+            validWindow.setFrameOrigin(currentPosition)
+            
+            // Safely update view content
+            if let petView = validWindow.petView, !petView.isPetHidden {
+                petView.currentImage = currentFrame
+                petView.direction = currentDirection
+                petView.needsDisplay = true // Tell the view to redraw
+            }
         }
     }
 

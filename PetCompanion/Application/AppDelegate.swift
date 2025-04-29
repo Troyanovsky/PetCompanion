@@ -15,7 +15,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         // Initialize configuration first
-         // Attempt to load user config, fallback to bundled
+        // Attempt to load user config, fallback to bundled
         ConfigurationManager.shared.loadUserConfig()
 
         // Initialize Menu Bar
@@ -23,6 +23,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         menuBarController.appDelegate = self // Link back for actions
         menuBarController.setupStatusItem()
 
+        // Create the pet controller if it doesn't exist
+        if petController == nil {
+            petController = PetController()
+        }
+        
         // Start the pet automatically on launch (or based on a saved preference)
         togglePet(activate: true) // Start active
         menuBarController.updateToggleState(isActive: isPetActive())
@@ -46,18 +51,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             if petController == nil {
                 print("AppDelegate: Creating and starting PetController")
                 petController = PetController()
-                petController?.start()
-            } else if !(petController?.isRunning ?? false) {
-                 print("AppDelegate: Starting existing PetController")
-                 petController?.start() // Start if already exists but stopped
             }
+            
+            print("AppDelegate: Starting PetController")
+            petController?.start()
         } else {
             print("AppDelegate: Stopping PetController")
+            // Ensure we update the menu state BEFORE stopping the controller
+            menuBarController.updateToggleState(isActive: false)
             petController?.stop()
-            // Optionally destroy it: petController = nil
-            // Keeping it might be slightly faster to restart
         }
-         menuBarController.updateToggleState(isActive: isPetActive()) // Ensure menu updates
     }
 
     func isPetActive() -> Bool {
